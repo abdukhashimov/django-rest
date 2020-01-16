@@ -13,37 +13,28 @@ from recipe.serializers import (
     IngredientSerializer
 )
 
-class TagViewSet(viewsets.GenericViewSet,
-                mixins.ListModelMixin,
-                mixins.CreateModelMixin):
-    """Manage tags in the database"""
-    authentication_classes = (TokenAuthentication, )
+class BaseRecipeAttrViewSet(viewsets.GenericViewSet,
+                            mixins.ListModelMixin,
+                            mixins.CreateModelMixin,):
+    """Base viewset for user owned recipe and tags"""
+    authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated, )
+
+    def get_queryset(self):
+        """Returns the obejcts to the currenly authenticated user only"""
+        return self.queryset.filter(user=self.request.user).order_by('-name')
+
+    def perform_create(self, serializer):
+        """Create a new object"""
+        return serializer.save(user=self.request.user)
+
+class TagViewSet(BaseRecipeAttrViewSet):
+    """Manage tags in the database"""
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
 
-    def get_queryset(self):
-        """Return objects for the current authenticated user only"""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
-    
-    def perform_create(self, serializer):
-        """Create a new tag"""
-        serializer.save(user=self.request.user)
 
-
-class IngredientViewSet(viewsets.GenericViewSet,
-                        mixins.ListModelMixin,
-                        mixins.CreateModelMixin):
+class IngredientViewSet(BaseRecipeAttrViewSet):
     """Manage the ingredients in the database using API"""
-    authentication_classes = (TokenAuthentication, )
-    permission_classes = (IsAuthenticated, )
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
-
-    def get_queryset(self):
-        """Return objects for only authenticated user only"""
-        return self.queryset.filter(user=self.request.user).order_by('-name')
-
-    def perform_create(self, serializer):
-        """Create a new ingredient"""
-        serializer.save(user=self.request.user)

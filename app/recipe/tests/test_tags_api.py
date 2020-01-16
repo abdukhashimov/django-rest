@@ -14,7 +14,7 @@ TAGS_URL = reverse('recipe:tag-list')
 
 
 class PublicTagTest(TestCase):
-    """Testing the .namepublicly available API"""
+    """Testing the publicly available API"""
 
     def setUp(self):
         self.client = APIClient()
